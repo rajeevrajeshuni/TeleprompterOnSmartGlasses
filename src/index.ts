@@ -1149,6 +1149,54 @@ expressApp.get('/health', (req, res) => {
   res.json({ status: 'healthy', app: PACKAGE_NAME });
 });
 
+// Add API endpoint to start teleprompter with settings
+expressApp.post('/api/start-teleprompter', express.json(), async (req, res) => {
+  try {
+    const { settings } = req.body;
+
+    if (!settings) {
+      res.status(400).json({
+        success: false,
+        message: 'Settings are required'
+      });
+      return;
+    }
+
+    // Validate settings structure
+    const requiredFields = ['line_width', 'scroll_speed', 'number_of_lines', 'custom_text', 'auto_replay', 'speech_scroll_enabled', 'show_estimated_total'];
+    const missingFields = requiredFields.filter(field => !(field in settings));
+    
+    if (missingFields.length > 0) {
+      res.status(400).json({
+        success: false,
+        message: `Missing required fields: ${missingFields.join(', ')}`
+      });
+      return;
+    }
+
+    // Log the received settings
+    console.log('Received teleprompter start request with settings:', settings);
+
+    // Note: The actual session creation and teleprompter start happens through the TPA SDK
+    // when a user connects their glasses. This endpoint serves as a configuration endpoint
+    // that could be used to store user preferences or trigger other actions.
+    
+    // For now, we'll just acknowledge receipt of the settings
+    res.json({
+      success: true,
+      message: 'Teleprompter settings received. Connect your smart glasses to start the teleprompter.',
+      settings: settings
+    });
+
+  } catch (error) {
+    console.error('Error processing start-teleprompter request:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
 // Start the server
 teleprompterApp.start().then(() => {
   console.log(`${PACKAGE_NAME} server running on port ${PORT}`);
