@@ -2,7 +2,7 @@
 
 ## Overview
 
-The webview component of the Smart Glasses Teleprompter app provides an interface for managing notes and recordings captured via the glasses. The webview is built with React, TypeScript, and shadcn components, focusing on a clean architecture that efficiently manages real-time updates from the glasses.
+The webview component of the Smart Glasses Teleprompter app provides an interface for displaying scrolling text on smart glasses. The webview is built with React, TypeScript, and shadcn components, focusing on a clean architecture for teleprompter functionality.
 
 ## Project Structure
 

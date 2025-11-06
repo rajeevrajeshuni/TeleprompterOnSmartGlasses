@@ -12,8 +12,8 @@ const isProduction = window.location.hostname.includes('mentra.glass') ||
 terminal.log('VITE_API_URL from env:', import.meta.env.VITE_API_URL);
 terminal.log('isProduction:', isProduction);
 
-const API_BASE_URL = isProduction 
-  ? 'https://translation-api.mentra.glass'
+const API_BASE_URL = isProduction
+  ? 'https://teleprompter-api.mentra.glass'
   : (import.meta.env.VITE_API_URL || '');
 
 terminal.log('API_BASE_URL:', API_BASE_URL);

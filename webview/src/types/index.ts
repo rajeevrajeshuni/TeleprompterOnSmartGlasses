@@ -1,6 +1,1 @@
-/**
- * Type exports
- */
-
-export * from './note';
-export * from './recording';
+// Type exports will be added as needed for teleprompter functionality

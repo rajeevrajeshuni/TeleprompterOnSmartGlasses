@@ -54,7 +54,7 @@ function SplashScreen() {
               </defs>
             </svg>
             <div className='flex flex-col text-xl sm:text-2xl md:text-3xl lg:text-4xl relative z-10'>
-                <span className='bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent mr-1'>TRANSLATION</span>
+                <span className='bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent mr-1'>TELEPROMPTER</span>
             </div>
 
 

@@ -36,7 +36,7 @@ function TpaConnectionError() {
           <h2 className="text-2xl sm:text-3xl font-semibold text-slate-200 mb-4">App Not Online</h2>
 
           <p className="text-slate-400 text-sm sm:text-base mb-6 px-4">
-            The translation service is currently offline. Please start the app in MentraOS to begin translating.
+            The teleprompter service is currently offline. Please start the app in MentraOS to begin using the teleprompter.
           </p>
 
           <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/30 rounded-lg p-4 mx-4">
