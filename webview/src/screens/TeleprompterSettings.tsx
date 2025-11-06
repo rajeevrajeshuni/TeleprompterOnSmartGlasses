@@ -1,15 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Textarea } from '../components/ui/textarea';
 import { Switch } from '../components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-import api from '../Api';
 import type { TeleprompterSettings } from '../types/index';
+
+const SETTINGS_KEY = 'teleprompter_settings';
 
 const DEFAULT_SETTINGS: TeleprompterSettings = {
   line_width: 'Medium',
@@ -24,27 +23,25 @@ const DEFAULT_SETTINGS: TeleprompterSettings = {
 export default function TeleprompterSettings() {
   const navigate = useNavigate();
   const [settings, setSettings] = useState<TeleprompterSettings>(DEFAULT_SETTINGS);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const response = await api.startTeleprompter(settings);
-      
-      if (response.success) {
-        toast.success('Teleprompter started successfully!');
-        // Optionally navigate to a different screen or show confirmation
-      } else {
-        toast.error(response.message || 'Failed to start teleprompter');
+  // Load saved settings on mount
+  useEffect(() => {
+    const savedSettingsStr = localStorage.getItem(SETTINGS_KEY);
+    if (savedSettingsStr) {
+      try {
+        const savedSettings = JSON.parse(savedSettingsStr);
+        setSettings(savedSettings);
+      } catch (error) {
+        console.error('Error loading settings:', error);
       }
-    } catch (error) {
-      console.error('Error starting teleprompter:', error);
-      toast.error('Failed to start teleprompter. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
+  }, []);
+
+  const handleBack = () => {
+    // Save settings to localStorage
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    toast.success('Settings saved');
+    navigate('/');
   };
 
   const updateSetting = <K extends keyof TeleprompterSettings>(
@@ -55,170 +52,137 @@ export default function TeleprompterSettings() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
-      <div className="max-w-4xl mx-auto">
-        <Card className="bg-slate-800/50 border-slate-700 backdrop-blur">
-          <CardHeader>
-            <CardTitle className="text-3xl font-bold text-white">
-              Teleprompter Settings
-            </CardTitle>
-            <CardDescription className="text-slate-300">
-              Configure your teleprompter preferences before starting
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Custom Text */}
-              <div className="space-y-2">
-                <Label htmlFor="custom_text" className="text-white text-lg">
-                  Text to Display
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col">
+      {/* Header with Back Button */}
+      <header className="p-6 pb-4 border-b border-slate-700/50">
+        <button
+          onClick={handleBack}
+          className="flex items-center gap-2 text-white hover:text-purple-400 transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span className="text-xl font-semibold">Settings</span>
+        </button>
+      </header>
+
+      {/* Main Content - Settings List */}
+      <main className="flex-1 p-6 overflow-y-auto">
+        <div className="max-w-2xl mx-auto space-y-6">
+          {/* Line Width */}
+          <div className="space-y-2">
+            <Label htmlFor="line_width" className="text-white text-base">
+              Line Width
+            </Label>
+            <Select
+              value={settings.line_width}
+              onValueChange={(value) => updateSetting('line_width', value)}
+            >
+              <SelectTrigger className="bg-slate-800/50 border-slate-700 text-white h-12">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-800 border-slate-700">
+                <SelectItem value="Small">Small</SelectItem>
+                <SelectItem value="Medium">Medium</SelectItem>
+                <SelectItem value="Large">Large</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Scroll Speed */}
+          <div className="space-y-2">
+            <Label htmlFor="scroll_speed" className="text-white text-base">
+              Scroll Speed (Words Per Minute)
+            </Label>
+            <Input
+              id="scroll_speed"
+              type="number"
+              min="1"
+              max="500"
+              value={settings.scroll_speed}
+              onChange={(e) => updateSetting('scroll_speed', parseInt(e.target.value) || 120)}
+              className="bg-slate-800/50 border-slate-700 text-white h-12"
+            />
+            <p className="text-sm text-slate-400">
+              Recommended: 120-180 WPM for comfortable reading
+            </p>
+          </div>
+
+          {/* Number of Lines */}
+          <div className="space-y-2">
+            <Label htmlFor="number_of_lines" className="text-white text-base">
+              Number of Lines
+            </Label>
+            <Select
+              value={settings.number_of_lines}
+              onValueChange={(value) => updateSetting('number_of_lines', value)}
+            >
+              <SelectTrigger className="bg-slate-800/50 border-slate-700 text-white h-12">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-800 border-slate-700">
+                <SelectItem value="2">2 Lines</SelectItem>
+                <SelectItem value="3">3 Lines</SelectItem>
+                <SelectItem value="4">4 Lines</SelectItem>
+                <SelectItem value="5">5 Lines</SelectItem>
+                <SelectItem value="6">6 Lines</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Separator */}
+          <div className="border-t border-slate-700 my-6"></div>
+
+          {/* Toggle Settings */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between py-2">
+              <div className="space-y-0.5">
+                <Label htmlFor="auto_replay" className="text-white text-base">
+                  Auto Replay
                 </Label>
-                <Textarea
-                  id="custom_text"
-                  placeholder="Enter or paste your text here..."
-                  value={settings.custom_text}
-                  onChange={(e) => updateSetting('custom_text', e.target.value)}
-                  className="min-h-[200px] bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
-                />
                 <p className="text-sm text-slate-400">
-                  Leave empty to use default welcome text
+                  Automatically restart when text ends
                 </p>
               </div>
+              <Switch
+                id="auto_replay"
+                checked={settings.auto_replay}
+                onCheckedChange={(checked) => updateSetting('auto_replay', checked)}
+              />
+            </div>
 
-              {/* Line Width */}
-              <div className="space-y-2">
-                <Label htmlFor="line_width" className="text-white text-lg">
-                  Line Width
+            <div className="flex items-center justify-between py-2">
+              <div className="space-y-0.5">
+                <Label htmlFor="speech_scroll_enabled" className="text-white text-base">
+                  Speech-Based Scrolling
                 </Label>
-                <Select
-                  value={settings.line_width}
-                  onValueChange={(value) => updateSetting('line_width', value)}
-                >
-                  <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
-                    <SelectItem value="Small">Small</SelectItem>
-                    <SelectItem value="Medium">Medium</SelectItem>
-                    <SelectItem value="Large">Large</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Scroll Speed */}
-              <div className="space-y-2">
-                <Label htmlFor="scroll_speed" className="text-white text-lg">
-                  Scroll Speed (Words Per Minute)
-                </Label>
-                <Input
-                  id="scroll_speed"
-                  type="number"
-                  min="1"
-                  max="500"
-                  value={settings.scroll_speed}
-                  onChange={(e) => updateSetting('scroll_speed', parseInt(e.target.value) || 120)}
-                  className="bg-slate-700/50 border-slate-600 text-white"
-                />
                 <p className="text-sm text-slate-400">
-                  Recommended: 120-180 WPM for comfortable reading
+                  Scroll based on your speech instead of time
                 </p>
               </div>
+              <Switch
+                id="speech_scroll_enabled"
+                checked={settings.speech_scroll_enabled}
+                onCheckedChange={(checked) => updateSetting('speech_scroll_enabled', checked)}
+              />
+            </div>
 
-              {/* Number of Lines */}
-              <div className="space-y-2">
-                <Label htmlFor="number_of_lines" className="text-white text-lg">
-                  Number of Lines
+            <div className="flex items-center justify-between py-2">
+              <div className="space-y-0.5">
+                <Label htmlFor="show_estimated_total" className="text-white text-base">
+                  Show Estimated Total Time
                 </Label>
-                <Select
-                  value={settings.number_of_lines}
-                  onValueChange={(value) => updateSetting('number_of_lines', value)}
-                >
-                  <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
-                    <SelectItem value="2">2 Lines</SelectItem>
-                    <SelectItem value="3">3 Lines</SelectItem>
-                    <SelectItem value="4">4 Lines</SelectItem>
-                    <SelectItem value="5">5 Lines</SelectItem>
-                    <SelectItem value="6">6 Lines</SelectItem>
-                  </SelectContent>
-                </Select>
+                <p className="text-sm text-slate-400">
+                  Display projected completion time
+                </p>
               </div>
-
-              {/* Toggle Settings */}
-              <div className="space-y-4 pt-4 border-t border-slate-700">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="auto_replay" className="text-white">
-                      Auto Replay
-                    </Label>
-                    <p className="text-sm text-slate-400">
-                      Automatically restart when text ends
-                    </p>
-                  </div>
-                  <Switch
-                    id="auto_replay"
-                    checked={settings.auto_replay}
-                    onCheckedChange={(checked) => updateSetting('auto_replay', checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="speech_scroll_enabled" className="text-white">
-                      Speech-Based Scrolling
-                    </Label>
-                    <p className="text-sm text-slate-400">
-                      Scroll based on your speech instead of time
-                    </p>
-                  </div>
-                  <Switch
-                    id="speech_scroll_enabled"
-                    checked={settings.speech_scroll_enabled}
-                    onCheckedChange={(checked) => updateSetting('speech_scroll_enabled', checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="show_estimated_total" className="text-white">
-                      Show Estimated Total Time
-                    </Label>
-                    <p className="text-sm text-slate-400">
-                      Display projected completion time in status bar
-                    </p>
-                  </div>
-                  <Switch
-                    id="show_estimated_total"
-                    checked={settings.show_estimated_total}
-                    onCheckedChange={(checked) => updateSetting('show_estimated_total', checked)}
-                  />
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <div className="flex gap-4 pt-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate('/')}
-                  className="flex-1 bg-slate-700/50 border-slate-600 text-white hover:bg-slate-700"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
-                >
-                  {isLoading ? 'Starting...' : 'Start Teleprompter'}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+              <Switch
+                id="show_estimated_total"
+                checked={settings.show_estimated_total}
+                onCheckedChange={(checked) => updateSetting('show_estimated_total', checked)}
+              />
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
