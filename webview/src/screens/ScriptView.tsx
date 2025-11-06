@@ -97,7 +97,7 @@ export default function ScriptView() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex flex-col">
       {/* Header */}
       <header className="p-6 pb-4">
         <h1 className="text-2xl font-bold text-white">Teleprompter</h1>
@@ -109,7 +109,7 @@ export default function ScriptView() {
           placeholder="Enter or paste your script here..."
           value={scriptText}
           onChange={(e) => setScriptText(e.target.value)}
-          className="flex-1 min-h-[400px] bg-slate-800/50 border-slate-700 text-white text-lg placeholder:text-slate-400 resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur"
+          className="flex-1 min-h-[400px] bg-slate-800/50 border-slate-700 text-white text-lg placeholder:text-slate-400 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur"
         />
       </main>
 
@@ -119,7 +119,7 @@ export default function ScriptView() {
           <Button
             onClick={handleStartTeleprompter}
             disabled={isLoading || !scriptText.trim()}
-            className="flex-1 h-14 text-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 h-14 text-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Starting...' : 'Start Teleprompter'}
           </Button>

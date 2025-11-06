@@ -49,12 +49,12 @@ function SplashScreen() {
               <defs>
                 <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stopColor="#3b82f6" />
-                  <stop offset="100%" stopColor="#9333ea" />
+                  <stop offset="100%" stopColor="#1e40af" />
                 </linearGradient>
               </defs>
             </svg>
             <div className='flex flex-col text-xl sm:text-2xl md:text-3xl lg:text-4xl relative z-10'>
-                <span className='bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent mr-1'>TELEPROMPTER</span>
+                <span className='bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent mr-1'>TELEPROMPTER</span>
             </div>
 
 
