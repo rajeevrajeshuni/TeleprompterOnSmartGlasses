@@ -7,34 +7,59 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import type { TeleprompterSettings } from '../types/index';
+import api from '../Api';
 
 const SETTINGS_KEY = 'teleprompter_settings';
 
-const DEFAULT_SETTINGS: TeleprompterSettings = {
-  line_width: 'Medium',
-  scroll_speed: 120,
-  number_of_lines: '4',
-  custom_text: '',
-  auto_replay: false,
-  speech_scroll_enabled: true,
-  show_estimated_total: true,
-};
-
 export default function TeleprompterSettings() {
   const navigate = useNavigate();
-  const [settings, setSettings] = useState<TeleprompterSettings>(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<TeleprompterSettings | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load saved settings on mount
+  // Load saved settings or fetch from API on mount
   useEffect(() => {
-    const savedSettingsStr = localStorage.getItem(SETTINGS_KEY);
-    if (savedSettingsStr) {
-      try {
-        const savedSettings = JSON.parse(savedSettingsStr);
-        setSettings(savedSettings);
-      } catch (error) {
-        console.error('Error loading settings:', error);
+    const loadSettings = async () => {
+      // First check localStorage for cached settings
+      const savedSettingsStr = localStorage.getItem(SETTINGS_KEY);
+      if (savedSettingsStr) {
+        try {
+          const savedSettings = JSON.parse(savedSettingsStr);
+          setSettings(savedSettings);
+          setIsLoading(false);
+          return;
+        } catch (error) {
+          console.error('Error loading cached settings:', error);
+        }
       }
-    }
+
+      // If no cached settings, fetch from API
+      try {
+        // Get user email from localStorage (set by useAuth)
+        const userEmail = localStorage.getItem('user_email') || 'default_user';
+        const userSettings = await api.getUserSettings(userEmail);
+        setSettings(userSettings);
+        // Cache the settings in localStorage
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(userSettings));
+      } catch (error) {
+        console.error('Error fetching user settings:', error);
+        // Fallback to hardcoded defaults if API fails
+        const fallbackSettings = {
+          line_width: 'Medium',
+          scroll_speed: 120,
+          number_of_lines: '4',
+          custom_text: '',
+          auto_replay: false,
+          speech_scroll_enabled: true,
+          show_estimated_total: true,
+        };
+        setSettings(fallbackSettings);
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(fallbackSettings));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadSettings();
   }, []);
 
   const handleBack = () => {
@@ -48,8 +73,17 @@ export default function TeleprompterSettings() {
     key: K,
     value: TeleprompterSettings[K]
   ) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
+    setSettings(prev => prev ? ({ ...prev, [key]: value }) : null);
   };
+
+  // Show loading state
+  if (isLoading || !settings) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading settings...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col">

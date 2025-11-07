@@ -24,6 +24,31 @@ terminal.log('Vite MODE:', import.meta.env.MODE);
 
 const api = {
   /**
+   * Get user settings
+   * @param userId - The user ID to fetch settings for
+   */
+  async getUserSettings(userId: string): Promise<TeleprompterSettings> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/settings/${userId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.settings;
+    } catch (error) {
+      terminal.error('Error fetching user settings:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Start the teleprompter with the given settings
    */
   async startTeleprompter(settings: TeleprompterSettings): Promise<StartTeleprompterResponse> {
