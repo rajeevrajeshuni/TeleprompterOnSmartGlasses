@@ -49,6 +49,30 @@ const api = {
   },
 
   /**
+   * Save user settings
+   * @param userId - The user ID to save settings for
+   * @param settings - The settings to save
+   */
+  async saveUserSettings(userId: string, settings: TeleprompterSettings): Promise<void> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/settings/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ settings }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    } catch (error) {
+      terminal.error('Error saving user settings:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Start the teleprompter with the given settings
    */
   async startTeleprompter(settings: TeleprompterSettings): Promise<StartTeleprompterResponse> {

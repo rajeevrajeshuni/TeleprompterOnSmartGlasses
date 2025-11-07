@@ -10,17 +10,6 @@ import type { TeleprompterSettings } from '../types/index';
 import * as mammoth from 'mammoth';
 
 const STORAGE_KEY = 'teleprompter_script';
-const SETTINGS_KEY = 'teleprompter_settings';
-
-const DEFAULT_SETTINGS: TeleprompterSettings = {
-  line_width: 'Medium',
-  scroll_speed: 120,
-  number_of_lines: '4',
-  custom_text: '',
-  auto_replay: false,
-  speech_scroll_enabled: true,
-  show_estimated_total: true,
-};
 
 export default function ScriptView() {
   const navigate = useNavigate();
@@ -61,15 +50,13 @@ export default function ScriptView() {
     setIsLoading(true);
 
     try {
-      // Load saved settings or use defaults
-      const savedSettingsStr = localStorage.getItem(SETTINGS_KEY);
-      const savedSettings = savedSettingsStr 
-        ? JSON.parse(savedSettingsStr) 
-        : DEFAULT_SETTINGS;
+      // Fetch current settings from API
+      const userEmail = localStorage.getItem('user_email') || 'default_user';
+      const userSettings = await api.getUserSettings(userEmail);
 
       // Merge script text with settings
       const settings: TeleprompterSettings = {
-        ...savedSettings,
+        ...userSettings,
         custom_text: scriptText,
       };
 

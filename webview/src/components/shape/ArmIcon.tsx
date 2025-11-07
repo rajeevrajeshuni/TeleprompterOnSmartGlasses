@@ -5,8 +5,8 @@ interface SquareIconProps {
 export function ArmIcon({ className }: SquareIconProps) {
   return (
     <img
-      src="../../../public/arm.svg" // relative to /public folder
-      alt="Square icon"
+      src="/arm.svg" // files in public should be referenced from root
+      alt="Arm icon"
       className={className}
     />
   );

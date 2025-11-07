@@ -9,39 +9,23 @@ import { toast } from 'sonner';
 import type { TeleprompterSettings } from '../types/index';
 import api from '../Api';
 
-const SETTINGS_KEY = 'teleprompter_settings';
-
 export default function TeleprompterSettings() {
   const navigate = useNavigate();
   const [settings, setSettings] = useState<TeleprompterSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Load saved settings or fetch from API on mount
+  // Always fetch settings from API on mount
   useEffect(() => {
     const loadSettings = async () => {
-      // First check localStorage for cached settings
-      const savedSettingsStr = localStorage.getItem(SETTINGS_KEY);
-      if (savedSettingsStr) {
-        try {
-          const savedSettings = JSON.parse(savedSettingsStr);
-          setSettings(savedSettings);
-          setIsLoading(false);
-          return;
-        } catch (error) {
-          console.error('Error loading cached settings:', error);
-        }
-      }
-
-      // If no cached settings, fetch from API
       try {
         // Get user email from localStorage (set by useAuth)
         const userEmail = localStorage.getItem('user_email') || 'default_user';
         const userSettings = await api.getUserSettings(userEmail);
         setSettings(userSettings);
-        // Cache the settings in localStorage
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify(userSettings));
       } catch (error) {
         console.error('Error fetching user settings:', error);
+        toast.error('Failed to load settings');
         // Fallback to hardcoded defaults if API fails
         const fallbackSettings = {
           line_width: 'Medium',
@@ -53,7 +37,6 @@ export default function TeleprompterSettings() {
           show_estimated_total: true,
         };
         setSettings(fallbackSettings);
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify(fallbackSettings));
       } finally {
         setIsLoading(false);
       }
@@ -62,11 +45,26 @@ export default function TeleprompterSettings() {
     loadSettings();
   }, []);
 
-  const handleBack = () => {
-    // Save settings to localStorage
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-    toast.success('Settings saved');
+  const handleCancel = () => {
     navigate('/');
+  };
+
+  const handleSave = async () => {
+    if (!settings) return;
+    
+    setIsSaving(true);
+    try {
+      // Get user email from localStorage (set by useAuth)
+      const userEmail = localStorage.getItem('user_email') || 'default_user';
+      await api.saveUserSettings(userEmail, settings);
+      toast.success('Settings saved');
+      navigate('/');
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      toast.error('Failed to save settings');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const updateSetting = <K extends keyof TeleprompterSettings>(
@@ -79,23 +77,41 @@ export default function TeleprompterSettings() {
   // Show loading state
   if (isLoading || !settings) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
         <div className="text-white text-xl">Loading settings...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col">
-      {/* Header with Back Button */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex flex-col">
+      {/* Header with Cancel and Back Buttons */}
       <header className="p-6 pb-4 border-b border-slate-700/50">
-        <button
-          onClick={handleBack}
-          className="flex items-center gap-2 text-white hover:text-purple-400 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="text-xl font-semibold">Settings</span>
-        </button>
+        <div className="flex items-center justify-between">
+          {/* Cancel Button - Top Left */}
+          <button
+            onClick={handleCancel}
+            disabled={isSaving}
+            className="flex items-center gap-2 px-4 py-2 text-white hover:text-purple-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-slate-600 rounded-md hover:border-purple-400"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span className="text-lg">Back</span>
+          </button>
+
+          {/* Title - Center */}
+          <span className="text-xl font-semibold text-white">
+            {isSaving ? 'Saving...' : 'Settings'}
+          </span>
+
+          {/* Save Button - Top Right */}
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex items-center gap-2 px-4 py-2 text-white hover:text-purple-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-slate-600 rounded-md hover:border-purple-400"
+          >
+            <span className="text-lg">Save</span>
+          </button>
+        </div>
       </header>
 
       {/* Main Content - Settings List */}
