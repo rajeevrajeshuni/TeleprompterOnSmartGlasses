@@ -1133,6 +1133,45 @@ expressApp.get('/api/settings/:userId', (req, res) => {
   }
 });
 
+// Add API endpoint to save user settings
+expressApp.put('/api/settings/:userId', express.json(), (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { settings } = req.body;
+    
+    if (!userId) {
+      res.status(400).json({
+        success: false,
+        message: 'userId is required'
+      });
+      return;
+    }
+
+    if (!settings) {
+      res.status(400).json({
+        success: false,
+        message: 'settings are required'
+      });
+      return;
+    }
+
+    // Save the settings using the settings manager
+    (teleprompterApp as any).settingsManager.saveUserSettings(userId, settings);
+    
+    res.json({
+      success: true,
+      message: 'Settings saved successfully',
+      settings
+    });
+  } catch (error) {
+    console.error('Error saving user settings:', error);
+    res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : 'Internal server error'
+    });
+  }
+});
+
 // Add API endpoint to start teleprompter with settings
 expressApp.post('/api/start-teleprompter', express.json(), async (req, res) => {
   try {
