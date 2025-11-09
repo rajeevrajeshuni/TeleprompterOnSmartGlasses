@@ -49,13 +49,13 @@ export class SettingsManager {
    */
   private validateSettings(settings: TeleprompterSettings): void {
     const requiredFields: (keyof TeleprompterSettings)[] = [
-      'line_width',
-      'scroll_speed',
-      'number_of_lines',
-      'text_to_read',
-      'auto_replay',
-      'speech_scroll_enabled',
-      'show_estimated_total'
+      'lineWidth',
+      'scrollSpeed',
+      'numberOfLines',
+      'textToRead',
+      'autoReplay',
+      'speechScrollEnabled',
+      'showEstimatedTotal'
     ];
 
     for (const field of requiredFields) {
@@ -65,32 +65,32 @@ export class SettingsManager {
     }
 
     // Validate specific field types and ranges
-    if (typeof settings.line_width !== 'string') {
-      throw new Error('line_width must be a string');
+    if (typeof settings.lineWidth !== 'string') {
+      throw new Error('lineWidth must be a string');
     }
 
-    if (typeof settings.scroll_speed !== 'number' || settings.scroll_speed < 1 || settings.scroll_speed > 500) {
-      throw new Error('scroll_speed must be a number between 1 and 500');
+    if (typeof settings.scrollSpeed !== 'number' || settings.scrollSpeed < 1 || settings.scrollSpeed > 500) {
+      throw new Error('scrollSpeed must be a number between 1 and 500');
     }
 
-    if (typeof settings.number_of_lines !== 'string') {
-      throw new Error('number_of_lines must be a string');
+    if (typeof settings.numberOfLines !== 'string') {
+      throw new Error('numberOfLines must be a string');
     }
 
-    if (typeof settings.text_to_read !== 'string') {
-      throw new Error('custom_text must be a string');
+    if (typeof settings.textToRead !== 'string') {
+      throw new Error('textToRead must be a string');
     }
 
-    if (typeof settings.auto_replay !== 'boolean') {
-      throw new Error('auto_replay must be a boolean');
+    if (typeof settings.autoReplay !== 'boolean') {
+      throw new Error('autoReplay must be a boolean');
     }
 
-    if (typeof settings.speech_scroll_enabled !== 'boolean') {
-      throw new Error('speech_scroll_enabled must be a boolean');
+    if (typeof settings.speechScrollEnabled !== 'boolean') {
+      throw new Error('speechScrollEnabled must be a boolean');
     }
 
-    if (typeof settings.show_estimated_total !== 'boolean') {
-      throw new Error('show_estimated_total must be a boolean');
+    if (typeof settings.showEstimatedTotal !== 'boolean') {
+      throw new Error('showEstimatedTotal must be a boolean');
     }
   }
 }

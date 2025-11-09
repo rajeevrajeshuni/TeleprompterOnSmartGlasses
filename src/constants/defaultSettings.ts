@@ -4,21 +4,21 @@
  */
 
 export interface TeleprompterSettings {
-  line_width: string;
-  scroll_speed: number;
-  number_of_lines: string;
-  text_to_read: string;
-  auto_replay: boolean;
-  speech_scroll_enabled: boolean;
-  show_estimated_total: boolean;
+  lineWidth: string;
+  scrollSpeed: number;
+  numberOfLines: string;
+  textToRead: string;
+  autoReplay: boolean;
+  speechScrollEnabled: boolean;
+  showEstimatedTotal: boolean;
 }
 
 export const DEFAULT_TELEPROMPTER_SETTINGS: TeleprompterSettings = {
-  line_width: 'Medium',
-  scroll_speed: 120,
-  number_of_lines: '4',
-  text_to_read: '',
-  auto_replay: false,
-  speech_scroll_enabled: true,
-  show_estimated_total: true,
+  lineWidth: 'Medium',
+  scrollSpeed: 120,
+  numberOfLines: '4',
+  textToRead: '',
+  autoReplay: false,
+  speechScrollEnabled: true,
+  showEstimatedTotal: true,
 };

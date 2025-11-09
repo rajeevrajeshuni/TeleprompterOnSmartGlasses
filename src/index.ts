@@ -795,13 +795,13 @@ class TeleprompterApp extends TpaServer {
     settings: TeleprompterSettings
   ): Promise<void> {
     try {
-      const lineWidth = convertLineWidth(settings.line_width, false);
-      const scrollSpeed = settings.scroll_speed;
-      const numberOfLines = parseInt(settings.number_of_lines);
-      const textToRead = settings.text_to_read || '';
-      const autoReplay = settings.auto_replay;
-      const speechScrollEnabled = settings.speech_scroll_enabled;
-      const showEstimatedTotal = settings.show_estimated_total;
+      const lineWidth = convertLineWidth(settings.lineWidth, false);
+      const scrollSpeed = settings.scrollSpeed;
+      const numberOfLines = parseInt(settings.numberOfLines);
+      const textToRead = settings.textToRead || '';
+      const autoReplay = settings.autoReplay;
+      const speechScrollEnabled = settings.speechScrollEnabled;
+      const showEstimatedTotal = settings.showEstimatedTotal;
 
       console.log(`Applied settings for user ${userId}: lineWidth=${lineWidth}, scrollSpeed=${scrollSpeed}, numberOfLines=${numberOfLines}, autoReplay=${autoReplay}, speechScrollEnabled=${speechScrollEnabled}, showEstimatedTotal=${showEstimatedTotal}`);
 
@@ -1187,7 +1187,7 @@ expressApp.post('/api/start-teleprompter', express.json(), async (req, res) => {
     }
 
     // Validate settings structure
-    const requiredFields = ['line_width', 'scroll_speed', 'number_of_lines', 'custom_text', 'auto_replay', 'speech_scroll_enabled', 'show_estimated_total'];
+    const requiredFields = ['lineWidth', 'scrollSpeed', 'numberOfLines', 'textToRead', 'autoReplay', 'speechScrollEnabled', 'showEstimatedTotal'];
     const missingFields = requiredFields.filter(field => !(field in settings));
     
     if (missingFields.length > 0) {
