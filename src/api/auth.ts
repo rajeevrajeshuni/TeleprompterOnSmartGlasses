@@ -44,15 +44,20 @@ export interface AuthRequest extends Request {
  */
 export function createAuthMiddleware(apiKey: string) {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
-    const token = req.query.token as string;
+    const authHeader = req.headers.authorization;
     
-    if (!token) {
+    if (!authHeader) {
       res.status(401).json({
         success: false,
         message: 'Authorization header is required'
       });
       return;
     }
+
+    // Extract token from "Bearer <token>" format
+    const token = authHeader.startsWith('Bearer ')
+      ? authHeader.substring(7)
+      : authHeader;
 
     const userId = verifyFrontendToken(token, apiKey);
     

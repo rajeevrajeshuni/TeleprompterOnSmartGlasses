@@ -4,7 +4,8 @@ import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
 import { Settings, Upload } from 'lucide-react';
 import { toast } from 'sonner';
-import api from '../Api';
+import { createApiClient } from '../Api';
+import { useAuthenticatedApi } from '../hooks/useAuthenticatedApi';
 import type { TeleprompterSettings } from '../types/index';
 import * as mammoth from 'mammoth';
 
@@ -16,6 +17,8 @@ export default function ScriptView() {
   const [scriptText, setScriptText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const { getHeaders } = useAuthenticatedApi();
+  const api = createApiClient(getHeaders);
 
 
   // Load saved script from localStorage on mount

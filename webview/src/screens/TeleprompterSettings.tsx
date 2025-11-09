@@ -7,13 +7,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import type { TeleprompterSettings } from '../types/index';
-import api from '../Api';
+import { createApiClient } from '../Api';
+import { useAuthenticatedApi } from '../hooks/useAuthenticatedApi';
 
 export default function TeleprompterSettings() {
   const navigate = useNavigate();
   const [settings, setSettings] = useState<TeleprompterSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const { getHeaders } = useAuthenticatedApi();
+  const api = createApiClient(getHeaders);
 
   // Always fetch settings from API on mount
   useEffect(() => {

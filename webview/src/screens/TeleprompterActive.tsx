@@ -2,12 +2,15 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { StopCircle, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
-import api from '../Api';
+import { createApiClient } from '../Api';
+import { useAuthenticatedApi } from '../hooks/useAuthenticatedApi';
 import { useState } from 'react';
 
 export default function TeleprompterActive() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const { getHeaders } = useAuthenticatedApi();
+  const api = createApiClient(getHeaders);
 
   const handleStop = async () => {
     setIsLoading(true);
