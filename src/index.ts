@@ -2,8 +2,8 @@
 import express from 'express';
 import path from 'path';
 import {
-  TpaServer,
-  TpaSession,
+  AppServer,
+  AppSession,
   ViewType,
 } from '@mentra/sdk';
 import { TranscriptProcessor } from './utils/src/text-wrapping/TranscriptProcessor';
@@ -726,7 +726,7 @@ class TeleprompterManager {
  * TeleprompterApp - Main application class for the Teleprompter
  * that extends TpaServer for seamless integration with AugmentOS
  */
-class TeleprompterApp extends TpaServer {
+class TeleprompterApp extends AppServer {
   // Maps to track user teleprompter managers and active scrollers
   private userTeleprompterManagers = new Map<string, TeleprompterManager>();
   private sessionScrollers = new Map<string, NodeJS.Timeout>();
@@ -744,14 +744,35 @@ class TeleprompterApp extends TpaServer {
       publicDir: path.join(__dirname, './public')
     });
 
+    // Enable CORS for the webview
+    this.setupCORS();
+
     // Initialize settings manager
     this.settingsManager = new SettingsManager();
+  }
+
+  private setupCORS(): void {
+    const app = this.getExpressApp();
+    app.use((req, res, next) => {
+      // Allow requests from any origin for development
+      // In production, you should restrict this to your actual webview domain
+      res.header('Access-Control-Allow-Origin', '*');
+      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+      
+      // Handle preflight requests
+      if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+      } else {
+        next();
+      }
+    });
   }
 
   /**
    * Called by TpaServer when a new session is created
    */
-  protected async onSession(session: TpaSession, sessionId: string, userId: string): Promise<void> {
+  protected async onSession(session: AppSession, sessionId: string, userId: string): Promise<void> {
     console.log(`\n\n📜📜📜 Received teleprompter session request for user ${userId}, session ${sessionId}\n\n`);
 
     try {
@@ -760,40 +781,22 @@ class TeleprompterApp extends TpaServer {
 
       console.log(`Applying settings for user ${userId}:`, settings);
 
-      // Apply settings directly
-      await this.applySettingsToSession(sessionId, userId, settings);
-
-      // Show initial text
-      const teleprompterManager = this.userTeleprompterManagers.get(userId);
-      if (teleprompterManager) {
-        this.showTextToUser(session, sessionId, teleprompterManager.getCurrentVisibleText());
-      }
-
-      // Start scrolling
-      this.startScrolling(session, sessionId, userId);
+      // Create/Update teleprompterManager.
+      this.configureTeleprompterForUser(sessionId, userId, settings);
 
     } catch (error) {
-      console.error('Error initializing session:', error);
-      // Create default teleprompter manager if there was an error
-      const teleprompterManager = new TeleprompterManager('', 38, 120);
-      this.userTeleprompterManagers.set(userId, teleprompterManager);
-
-      // Show initial text
-      this.showTextToUser(session, sessionId, teleprompterManager.getCurrentVisibleText());
-
-      // Start scrolling
-      this.startScrolling(session, sessionId, userId);
+      console.error(`Error initializing session ${error} for user ${userId}`);
     }
   }
 
   /**
-   * Apply settings to an existing session
+   * Configure teleprompter for given user.
    */
-  private async applySettingsToSession(
+  private configureTeleprompterForUser(
     sessionId: string,
     userId: string,
     settings: TeleprompterSettings
-  ): Promise<void> {
+  ) {
     try {
       const lineWidth = convertLineWidth(settings.lineWidth, false);
       const scrollSpeed = settings.scrollSpeed;
@@ -894,7 +897,7 @@ class TeleprompterApp extends TpaServer {
   /**
    * Displays text to the user using the SDK's layout API
    */
-  private showTextToUser(session: TpaSession, sessionId: string, text: string): void {
+  private showTextToUser(session: AppSession, sessionId: string, text: string): void {
 
     // Check if the session is still active
     if (!this.sessionScrollers.has(sessionId)) {
@@ -931,7 +934,7 @@ class TeleprompterApp extends TpaServer {
   /**
    * Starts scrolling the teleprompter text for a session
    */
-  private startScrolling(session: TpaSession, sessionId: string, userId: string): void {
+  private startScrolling(session: AppSession, sessionId: string, userId: string): void {
     // Check if we already have a scroller for this session
     if (this.sessionScrollers.has(sessionId)) {
       this.stopScrolling(sessionId);
