@@ -726,7 +726,7 @@ class TeleprompterManager {
  * TeleprompterApp - Main application class for the Teleprompter
  * that extends TpaServer for seamless integration with AugmentOS
  */
-class TeleprompterApp extends AppServer {
+export class TeleprompterApp extends AppServer {
   // Maps to track user teleprompter managers and active scrollers
   private userTeleprompterManagers = new Map<string, TeleprompterManager>();
   private sessionScrollers = new Map<string, NodeJS.Timeout>();
@@ -784,6 +784,11 @@ class TeleprompterApp extends AppServer {
       // Create/Update teleprompterManager.
       this.configureTeleprompterForUser(sessionId, userId, settings);
 
+      const teleprompterManager = this.userTeleprompterManagers.get(userId);
+      this.showTextToUser(session, sessionId, teleprompterManager!.getCurrentVisibleText());
+      // Start scrolling
+      this.startScrolling(session, sessionId, userId);
+
     } catch (error) {
       console.error(`Error initializing session ${error} for user ${userId}`);
     }
@@ -801,7 +806,6 @@ class TeleprompterApp extends AppServer {
       const lineWidth = convertLineWidth(settings.lineWidth, false);
       const scrollSpeed = settings.scrollSpeed;
       const numberOfLines = parseInt(settings.numberOfLines);
-      const textToRead = settings.textToRead || '';
       const autoReplay = settings.autoReplay;
       const speechScrollEnabled = settings.speechScrollEnabled;
       const showEstimatedTotal = settings.showEstimatedTotal;
@@ -810,11 +814,9 @@ class TeleprompterApp extends AppServer {
 
       // Get or create teleprompter manager
       let teleprompterManager = this.userTeleprompterManagers.get(userId);
-      let textChanged = false;
-
       if (!teleprompterManager) {
         teleprompterManager = new TeleprompterManager(
-          textToRead,
+          '',
           numberOfLines,
           lineWidth,
           scrollSpeed,
@@ -823,17 +825,7 @@ class TeleprompterApp extends AppServer {
           showEstimatedTotal
         );
         this.userTeleprompterManagers.set(userId, teleprompterManager);
-        textChanged = true;
-      } else {
-        // Update existing manager
-        const oldText = teleprompterManager.getText();
-        textChanged = oldText !== textToRead;
-        
-        if (textChanged) {
-          teleprompterManager.setText(textToRead);
-          teleprompterManager.resetPosition();
-        }
-        
+      } else {        
         teleprompterManager.setLineWidth(lineWidth);
         teleprompterManager.setScrollSpeed(scrollSpeed);
         teleprompterManager.setNumberOfLines(numberOfLines);
@@ -841,8 +833,7 @@ class TeleprompterApp extends AppServer {
         teleprompterManager.setSpeechScrollEnabled(speechScrollEnabled);
         teleprompterManager.setShowEstimatedTotal(showEstimatedTotal);
       }
-
-      console.log(`Settings applied for user ${userId}, text changed: ${textChanged}`);
+      console.log(`Settings applied for user ${userId}`);
     } catch (error) {
       console.error(`Error applying settings to session ${sessionId}:`, error);
       throw error;
@@ -1179,6 +1170,7 @@ expressApp.put('/api/settings/:userId', express.json(), (req, res) => {
 // Add API endpoint to start teleprompter with settings
 expressApp.post('/api/start-teleprompter', express.json(), async (req, res) => {
   try {
+    //TODO: Should not send userId, we should send some token which we should check with mentra for userId.
     const { settings, userId } = req.body;
 
     if (!settings) {

@@ -52,7 +52,6 @@ export class SettingsManager {
       'lineWidth',
       'scrollSpeed',
       'numberOfLines',
-      'textToRead',
       'autoReplay',
       'speechScrollEnabled',
       'showEstimatedTotal'
@@ -75,10 +74,6 @@ export class SettingsManager {
 
     if (typeof settings.numberOfLines !== 'string') {
       throw new Error('numberOfLines must be a string');
-    }
-
-    if (typeof settings.textToRead !== 'string') {
-      throw new Error('textToRead must be a string');
     }
 
     if (typeof settings.autoReplay !== 'boolean') {
