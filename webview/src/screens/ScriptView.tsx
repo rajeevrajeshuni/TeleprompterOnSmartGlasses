@@ -5,7 +5,6 @@ import { Textarea } from '../components/ui/textarea';
 import { Settings, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '../Api';
-import SplashScreen from './SplashScreen';
 import type { TeleprompterSettings } from '../types/index';
 import * as mammoth from 'mammoth';
 
@@ -16,17 +15,8 @@ export default function ScriptView() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [scriptText, setScriptText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showSplash, setShowSplash] = useState(true);
   const [isDragOver, setIsDragOver] = useState(false);
 
-  // Show splash screen for 1 second on mount
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   // Load saved script from localStorage on mount
   useEffect(() => {
@@ -50,6 +40,7 @@ export default function ScriptView() {
     setIsLoading(true);
 
     try {
+      navigate('/active');
       // Fetch current settings from API
       const userEmail = localStorage.getItem('user_email') || 'default_user';
       const userSettings = await api.getUserSettings(userEmail);
@@ -64,6 +55,8 @@ export default function ScriptView() {
       
       if (response.success) {
         toast.success('Teleprompter started successfully!');
+        // Navigate to the active teleprompter screen
+        navigate('/active');
       } else {
         toast.error(response.message || 'Failed to start teleprompter');
       }
@@ -152,11 +145,6 @@ export default function ScriptView() {
       handleFileSelect(file);
     }
   };
-
-  // Show splash screen for the first second
-  if (showSplash) {
-    return <SplashScreen />;
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex flex-col">

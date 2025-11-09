@@ -96,6 +96,54 @@ const api = {
       throw error;
     }
   },
+
+  /**
+   * Stop the teleprompter
+   */
+  async stopTeleprompter(): Promise<{ success: boolean; message: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/stop-teleprompter`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      terminal.error('Error stopping teleprompter:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Reset the teleprompter (restart from beginning)
+   */
+  async resetTeleprompter(): Promise<{ success: boolean; message: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/reset-teleprompter`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      terminal.error('Error resetting teleprompter:', error);
+      throw error;
+    }
+  },
 };
 
 export default api;

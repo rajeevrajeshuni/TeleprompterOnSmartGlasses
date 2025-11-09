@@ -31,6 +31,8 @@ function setupRoutes() {
   router.get('/api/settings', authMiddleware, getSettings);
   router.put('/api/settings', express.json(), authMiddleware, updateSettings);
   router.post('/api/start-teleprompter', express.json(), authMiddleware, startTeleprompter);
+  router.post('/api/stop-teleprompter', authMiddleware, stopTeleprompter);
+  router.post('/api/reset-teleprompter', authMiddleware, resetTeleprompter);
 }
 
 /**
@@ -132,6 +134,97 @@ async function startTeleprompter(req: AuthRequest, res: Response) {
 
   } catch (error) {
     console.error('Error processing start-teleprompter request:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+}
+
+/**
+ * Stop teleprompter
+ * POST /api/stop-teleprompter
+ */
+async function stopTeleprompter(req: AuthRequest, res: Response) {
+  try {
+    const userId = req.userId;
+    
+    if (!userId) {
+      res.status(400).json({
+        success: false,
+        message: 'userId is required'
+      });
+      return;
+    }
+
+    // Get the active session for this user
+    const activeSession = app.getActiveSessionForUser(userId);
+    
+    if (!activeSession) {
+      res.status(404).json({
+        success: false,
+        message: 'No active teleprompter session found'
+      });
+      return;
+    }
+
+    // Stop the scrolling
+    app.stopScrolling(activeSession.sessionId);
+    
+    res.json({
+      success: true,
+      message: 'Teleprompter stopped successfully'
+    });
+
+  } catch (error) {
+    console.error('Error stopping teleprompter:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+}
+
+/**
+ * Reset teleprompter (restart from beginning)
+ * POST /api/reset-teleprompter
+ */
+async function resetTeleprompter(req: AuthRequest, res: Response) {
+  try {
+    const userId = req.userId;
+    
+    if (!userId) {
+      res.status(400).json({
+        success: false,
+        message: 'userId is required'
+      });
+      return;
+    }
+
+    // Get the active session for this user
+    const activeSession = app.getActiveSessionForUser(userId);
+    
+    if (!activeSession) {
+      res.status(404).json({
+        success: false,
+        message: 'No active teleprompter session found'
+      });
+      return;
+    }
+
+    // Stop current scrolling
+    app.stopScrolling(activeSession.sessionId);
+    
+    // Restart scrolling from the beginning
+    app.startScrolling(activeSession.session, activeSession.sessionId, userId);
+    
+    res.json({
+      success: true,
+      message: 'Teleprompter reset successfully'
+    });
+
+  } catch (error) {
+    console.error('Error resetting teleprompter:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error'
