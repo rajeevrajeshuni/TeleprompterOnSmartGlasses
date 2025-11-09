@@ -1,5 +1,4 @@
 // augmentos_cloud/packages/apps/teleprompter/src/index.ts
-import express from 'express';
 import path from 'path';
 import {
   AppServer,
@@ -11,11 +10,14 @@ import { convertLineWidth } from './utils/src/text-wrapping/convertLineWidth';
 import { type TeleprompterSettings } from './constants/defaultSettings';
 import { SettingsManager } from './services/SettingsManager';
 import { setupAPI } from './api';
+import { DummyAppSession } from './testing/DummyAppSession';
 
 // Configuration constants
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 80;
 const PACKAGE_NAME = process.env.PACKAGE_NAME;
 const MENTRAOS_API_KEY = process.env.MENTRAOS_API_KEY || process.env.AUGMENTOS_API_KEY;
+const NODE_ENV = process.env.NODE_ENV || 'production';
+const IS_DEV_MODE = NODE_ENV === 'development';
 
 // TeleprompterManager class to handle teleprompter functionality
 class TeleprompterManager {
@@ -755,6 +757,13 @@ export class TeleprompterApp extends AppServer {
     
     // Setup API routes
     setupAPI(this.getExpressApp(), this, MENTRAOS_API_KEY);
+
+    // Log development mode status
+    if (IS_DEV_MODE) {
+      console.log('🧪 Running in DEVELOPMENT mode - dummy session will be auto-created');
+    } else {
+      console.log('🚀 Running in PRODUCTION mode - waiting for real glass connections');
+    }
   }
 
   private setupCORS(): void {
@@ -1110,6 +1119,32 @@ const teleprompterApp = new TeleprompterApp();
 // Start the server
 teleprompterApp.start().then(() => {
   console.log(`${PACKAGE_NAME} server running on port ${PORT}`);
+  
+  // Auto-create dummy session in development mode
+  if (IS_DEV_MODE) {
+    console.log('\n🧪 Development Mode: Initializing dummy session...\n');
+    
+    setTimeout(() => {
+      const dummySession = new DummyAppSession();
+      const testUserId = 'test-user';
+      const testSessionId = 'dev-session-001';
+      
+      console.log(`✅ Creating dummy session for user: ${testUserId}`);
+      
+      // Call onSession with the dummy session
+      teleprompterApp['onSession'](
+        dummySession as any,
+        testSessionId,
+        testUserId
+      ).then(() => {
+        console.log('✅ Dummy session initialized successfully');
+        console.log('📝 Teleprompter will start scrolling with default text');
+        console.log('💡 Use the webview to send custom text via /api/start-teleprompter\n');
+      }).catch((error) => {
+        console.error('❌ Failed to initialize dummy session:', error);
+      });
+    }, 2000); // 2 second delay for server to fully start
+  }
 }).catch(error => {
   console.error('Failed to start server:', error);
 });

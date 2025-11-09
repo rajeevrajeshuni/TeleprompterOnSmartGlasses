@@ -1,9 +1,11 @@
 import express, { Response } from 'express';
 import { TeleprompterApp } from '../index';
 import { AuthRequest, createAuthMiddleware } from './auth';
-import { AppSession } from '@mentra/sdk';
+import { DummyAppSession } from '../testing/DummyAppSession';
 
 export const router = express.Router();
+const NODE_ENV = process.env.NODE_ENV || 'production';
+const IS_DEV_MODE = NODE_ENV === 'development';
 
 let app: TeleprompterApp;
 let authMiddleware: ReturnType<typeof createAuthMiddleware> | undefined;
@@ -33,6 +35,10 @@ function setupRoutes() {
   router.post('/api/start-teleprompter', express.json(), authMiddleware, startTeleprompter);
   router.post('/api/stop-teleprompter', authMiddleware, stopTeleprompter);
   router.post('/api/reset-teleprompter', authMiddleware, resetTeleprompter);
+  if (IS_DEV_MODE) {
+    // Development-only test endpoint (no auth required)
+    router.post('/api/test/simulate-session', express.json(), simulateSession);
+  }
 }
 
 /**
@@ -228,6 +234,53 @@ async function resetTeleprompter(req: AuthRequest, res: Response) {
     res.status(500).json({
       success: false,
       message: 'Internal server error'
+    });
+  }
+}
+
+/**
+ * Simulate a glass session for testing (development only)
+ * POST /api/test/simulate-session
+ */
+async function simulateSession(req: express.Request, res: Response) {
+  try {
+    // Only allow in development mode
+    if (process.env.NODE_ENV !== 'development') {
+      res.status(403).json({
+        success: false,
+        message: 'This endpoint is only available in development mode'
+      });
+      return;
+    }
+
+    const { userId, sessionId } = req.body;
+    const testUserId = userId || 'test-user';
+    const testSessionId = sessionId || `manual-test-${Date.now()}`;
+
+    console.log(`\n🧪 Manual test session requested for user: ${testUserId}`);
+
+    // Create a dummy session
+    const dummySession = new DummyAppSession();
+
+    // Call onSession with the dummy session
+    await (app as any).onSession(
+      dummySession as any,
+      testSessionId,
+      testUserId
+    );
+
+    res.json({
+      success: true,
+      message: 'Dummy session created successfully',
+      userId: testUserId,
+      sessionId: testSessionId
+    });
+
+  } catch (error) {
+    console.error('Error creating dummy session:', error);
+    res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : 'Internal server error'
     });
   }
 }
