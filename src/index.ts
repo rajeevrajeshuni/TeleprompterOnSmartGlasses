@@ -782,6 +782,9 @@ export class TeleprompterApp extends AppServer {
     console.log(`\n\n📜📜📜 Received teleprompter session request for user ${userId}, session ${sessionId}\n\n`);
 
     try {
+      // Store the active session for this user
+      this.activeUserSessions.set(userId, { session, sessionId });
+      
       // Load settings from SettingsManager
       const settings = this.settingsManager.getUserSettings(userId);
 
@@ -798,6 +801,13 @@ export class TeleprompterApp extends AppServer {
     } catch (error) {
       console.error(`Error initializing session ${error} for user ${userId}`);
     }
+  }
+
+  /**
+   * Helper method to get active session for a user
+  */
+  public getActiveSessionForUser(userId: string): { session: AppSession, sessionId: string } | null {
+    return this.activeUserSessions.get(userId) || null;
   }
 
   /**
