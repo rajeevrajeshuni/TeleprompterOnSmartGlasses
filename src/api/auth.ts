@@ -1,10 +1,11 @@
-import crypto from 'crypto';
+import * as crypto from 'crypto';
+import { Request, Response, NextFunction } from 'express';
 
 /**
  * Verify frontend token (similar to SDK's internal verifyFrontendToken)
  * Frontend tokens are in the format: userId:hash
  */
-function verifyFrontendToken(frontendToken: string, apiKey: string): string | null {
+export function verifyFrontendToken(frontendToken: string, apiKey: string): string | null {
   try {
     const tokenParts = frontendToken.split(':');
     if (tokenParts.length === 2) {
@@ -20,12 +21,51 @@ function verifyFrontendToken(frontendToken: string, apiKey: string): string | nu
         .digest('hex');
       
       if (tokenHash === expectedHash) {
-        console.log('[SSE] Frontend token validated for user:', tokenUserId);
+        console.log('[Auth] Frontend token validated for user:', tokenUserId);
         return tokenUserId;
       }
     }
   } catch (error) {
-    console.error('[SSE] Error verifying frontend token:', error);
+    console.error('[Auth] Error verifying frontend token:', error);
   }
   return null;
+}
+
+/**
+ * Extended Request type with authUserId
+ */
+export interface AuthRequest extends Request {
+  userId?: string;
+}
+
+/**
+ * Authentication middleware factory
+ * Creates middleware that verifies the Authorization token
+ */
+export function createAuthMiddleware(apiKey: string) {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
+    const token = req.query.token as string;
+    
+    if (!token) {
+      res.status(401).json({
+        success: false,
+        message: 'Authorization header is required'
+      });
+      return;
+    }
+
+    const userId = verifyFrontendToken(token, apiKey);
+    
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        message: 'Invalid or expired token'
+      });
+      return;
+    }
+
+    // Attach userId to request for use in route handlers
+    req.userId = userId;
+    next();
+  };
 }

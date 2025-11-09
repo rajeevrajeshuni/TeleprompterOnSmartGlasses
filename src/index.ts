@@ -10,6 +10,7 @@ import { TranscriptProcessor } from './utils/src/text-wrapping/TranscriptProcess
 import { convertLineWidth } from './utils/src/text-wrapping/convertLineWidth';
 import { type TeleprompterSettings } from './constants/defaultSettings';
 import { SettingsManager } from './services/SettingsManager';
+import { setupAPI } from './api';
 
 // Configuration constants
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 80;
@@ -730,7 +731,9 @@ export class TeleprompterApp extends AppServer {
   // Maps to track user teleprompter managers and active scrollers
   private userTeleprompterManagers = new Map<string, TeleprompterManager>();
   private sessionScrollers = new Map<string, NodeJS.Timeout>();
-  private settingsManager: SettingsManager;
+  // Track active sessions by user ID
+  private activeUserSessions = new Map<string, { session: AppSession, sessionId: string }>();
+  public settingsManager: SettingsManager;
 
   constructor() {
     if (!MENTRAOS_API_KEY) {
@@ -749,6 +752,9 @@ export class TeleprompterApp extends AppServer {
 
     // Initialize settings manager
     this.settingsManager = new SettingsManager();
+    
+    // Setup API routes
+    setupAPI(this.getExpressApp(), this, MENTRAOS_API_KEY);
   }
 
   private setupCORS(): void {
@@ -852,33 +858,17 @@ export class TeleprompterApp extends AppServer {
     // Immediately remove the session from our maps to prevent further updates
     this.sessionScrollers.delete(sessionId);
 
-    // Clean up teleprompter manager if this was the last session for this user
-    let hasOtherSessions = false;
-
     try {
-        const activeSessions = (this as any).getSessions?.() || [];
-
-        for (const [activeSessionId, session] of Object.entries(activeSessions)) {
-            if (activeSessionId !== sessionId) {
-                const sessionObj = session as any;
-                if (sessionObj.userId === userId ||
-                    sessionObj.user === userId ||
-                    sessionObj.getUserId?.() === userId) {
-                    hasOtherSessions = true;
-                    break;
-                }
-            }
+        const activeSession = this.activeUserSessions.get(userId);
+        if (activeSession && activeSession.sessionId === sessionId) {
+          this.activeUserSessions.delete(userId);
         }
-
-        // If no other sessions, clean up the teleprompter manager
-        if (!hasOtherSessions) {
-            const teleprompterManager = this.userTeleprompterManagers.get(userId);
-            if (teleprompterManager) {
-                teleprompterManager.clear();
-                teleprompterManager.resetPosition();
-                this.userTeleprompterManagers.delete(userId);
-                console.log(`[User ${userId}]: All sessions closed, teleprompter manager destroyed`);
-            }
+        const teleprompterManager = this.userTeleprompterManagers.get(userId);
+        if (teleprompterManager) {
+            teleprompterManager.clear();
+            teleprompterManager.resetPosition();
+            this.userTeleprompterManagers.delete(userId);
+            console.log(`[User ${userId}]: All sessions closed, teleprompter manager destroyed`);
         }
     } catch (e) {
         console.error('Error cleaning up session:', e);
@@ -925,7 +915,7 @@ export class TeleprompterApp extends AppServer {
   /**
    * Starts scrolling the teleprompter text for a session
    */
-  private startScrolling(session: AppSession, sessionId: string, userId: string): void {
+  public startScrolling(session: AppSession, sessionId: string, userId: string): void {
     // Check if we already have a scroller for this session
     if (this.sessionScrollers.has(sessionId)) {
       this.stopScrolling(sessionId);
@@ -1082,7 +1072,7 @@ export class TeleprompterApp extends AppServer {
   /**
    * Stops scrolling for a session
    */
-  private stopScrolling(sessionId: string): void {
+  public stopScrolling(sessionId: string): void {
     const interval = this.sessionScrollers.get(sessionId);
     if (interval) {
       clearInterval(interval);
@@ -1095,156 +1085,7 @@ export class TeleprompterApp extends AppServer {
 // Create and start the app
 const teleprompterApp = new TeleprompterApp();
 
-// Add health check endpoint
-const expressApp = teleprompterApp.getExpressApp();
-expressApp.get('/health', (req, res) => {
-  res.json({ status: 'healthy', app: PACKAGE_NAME });
-});
-
-// Add API endpoint to get user settings
-expressApp.get('/api/settings/:userId', (req, res) => {
-  try {
-    const { userId } = req.params;
-    
-    if (!userId) {
-      res.status(400).json({
-        success: false,
-        message: 'userId is required'
-      });
-      return;
-    }
-
-    const settings = (teleprompterApp as any).settingsManager.getUserSettings(userId);
-    res.json({
-      success: true,
-      settings
-    });
-  } catch (error) {
-    console.error('Error fetching user settings:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
-});
-
-// Add API endpoint to save user settings
-expressApp.put('/api/settings/:userId', express.json(), (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { settings } = req.body;
-    
-    if (!userId) {
-      res.status(400).json({
-        success: false,
-        message: 'userId is required'
-      });
-      return;
-    }
-
-    if (!settings) {
-      res.status(400).json({
-        success: false,
-        message: 'settings are required'
-      });
-      return;
-    }
-
-    // Save the settings using the settings manager
-    (teleprompterApp as any).settingsManager.saveUserSettings(userId, settings);
-    
-    res.json({
-      success: true,
-      message: 'Settings saved successfully',
-      settings
-    });
-  } catch (error) {
-    console.error('Error saving user settings:', error);
-    res.status(500).json({
-      success: false,
-      message: error instanceof Error ? error.message : 'Internal server error'
-    });
-  }
-});
-
-// Add API endpoint to start teleprompter with settings
-expressApp.post('/api/start-teleprompter', express.json(), async (req, res) => {
-  try {
-    //TODO: Should not send userId, we should send some token which we should check with mentra for userId.
-    const { settings, userId } = req.body;
-
-    if (!settings) {
-      res.status(400).json({
-        success: false,
-        message: 'Settings are required'
-      });
-      return;
-    }
-
-    // Validate settings structure
-    const requiredFields = ['lineWidth', 'scrollSpeed', 'numberOfLines', 'textToRead', 'autoReplay', 'speechScrollEnabled', 'showEstimatedTotal'];
-    const missingFields = requiredFields.filter(field => !(field in settings));
-    
-    if (missingFields.length > 0) {
-      res.status(400).json({
-        success: false,
-        message: `Missing required fields: ${missingFields.join(', ')}`
-      });
-      return;
-    }
-
-    console.log('Received teleprompter start request with settings:', settings);
-
-    // Store settings for this user (or use a default userId if not provided)
-    const effectiveUserId = userId || 'default_user';
-    (teleprompterApp as any).settingsManager.saveUserSettings(effectiveUserId, settings);
-
-    // Try to find and update active session for this user
-    let sessionUpdated = false;
-    try {
-      const activeSessions = (teleprompterApp as any).getSessions?.() || {};
-      
-      for (const [sessionId, session] of Object.entries(activeSessions)) {
-        const sessionObj = session as any;
-        const sessionUserId = sessionObj.userId || sessionObj.user || sessionObj.getUserId?.();
-        
-        if (sessionUserId === effectiveUserId) {
-          console.log(`Found active session ${sessionId} for user ${effectiveUserId}, applying settings`);
-          
-          // Stop current scrolling
-          (teleprompterApp as any).stopScrolling(sessionId);
-          
-          // Apply settings to existing session
-          await (teleprompterApp as any).applySettingsToSession(sessionId, effectiveUserId, settings);
-          
-          // Restart scrolling with new settings
-          (teleprompterApp as any).startScrolling(sessionObj, sessionId, effectiveUserId);
-          
-          sessionUpdated = true;
-          break;
-        }
-      }
-    } catch (error) {
-      console.error('Error checking for active sessions:', error);
-    }
-
-    res.json({
-      success: true,
-      message: sessionUpdated
-        ? 'Settings applied to active teleprompter session'
-        : 'Settings saved. They will be applied when you connect your smart glasses.',
-      settings: settings,
-      sessionUpdated
-    });
-
-  } catch (error) {
-    console.error('Error processing start-teleprompter request:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
-});
+// API routes are now handled by setupAPI in the constructor
 
 // Start the server
 teleprompterApp.start().then(() => {
