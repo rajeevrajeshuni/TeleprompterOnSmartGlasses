@@ -37,27 +37,6 @@ export class SettingsManager {
   }
 
   /**
-   * Check if user has saved settings
-   */
-  hasUserSettings(userId: string): boolean {
-    return this.userSettings.has(userId);
-  }
-
-  /**
-   * Delete settings for a specific user
-   */
-  deleteUserSettings(userId: string): boolean {
-    return this.userSettings.delete(userId);
-  }
-
-  /**
-   * Get all user IDs that have saved settings
-   */
-  getAllUserIds(): string[] {
-    return Array.from(this.userSettings.keys());
-  }
-
-  /**
    * Clear all settings (useful for testing)
    */
   clearAllSettings(): void {
@@ -73,7 +52,7 @@ export class SettingsManager {
       'line_width',
       'scroll_speed',
       'number_of_lines',
-      'custom_text',
+      'text_to_read',
       'auto_replay',
       'speech_scroll_enabled',
       'show_estimated_total'
@@ -98,7 +77,7 @@ export class SettingsManager {
       throw new Error('number_of_lines must be a string');
     }
 
-    if (typeof settings.custom_text !== 'string') {
+    if (typeof settings.text_to_read !== 'string') {
       throw new Error('custom_text must be a string');
     }
 
@@ -113,12 +92,5 @@ export class SettingsManager {
     if (typeof settings.show_estimated_total !== 'boolean') {
       throw new Error('show_estimated_total must be a boolean');
     }
-  }
-
-  /**
-   * Get default settings (useful for API responses)
-   */
-  getDefaultSettings(): TeleprompterSettings {
-    return { ...DEFAULT_TELEPROMPTER_SETTINGS };
   }
 }

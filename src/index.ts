@@ -46,8 +46,9 @@ class TeleprompterManager {
   private minWordsForMatch: number = 3; // Minimum words needed for a reliable match (reduced to 1)
   private lineOffset: number = 0; // Offset the line position by 1 to show the match on the 2nd line
 
-  constructor(text: string, lineWidth: number = 38, scrollSpeed: number = 120, autoReplay: boolean = false, speechScrollEnabled: boolean = true, showEstimatedTotal: boolean = true) {
+  constructor(text: string, numberOfLines: number, lineWidth: number = 38, scrollSpeed: number = 120, autoReplay: boolean = false, speechScrollEnabled: boolean = true, showEstimatedTotal: boolean = true) {
     this.text = text || this.getDefaultText();
+    this.numberOfLines = numberOfLines;
     this.lineWidth = lineWidth;
     this.numberOfLines = 4;
     this.scrollSpeed = scrollSpeed;
@@ -797,7 +798,7 @@ class TeleprompterApp extends TpaServer {
       const lineWidth = convertLineWidth(settings.line_width, false);
       const scrollSpeed = settings.scroll_speed;
       const numberOfLines = parseInt(settings.number_of_lines);
-      const customText = settings.custom_text || '';
+      const textToRead = settings.text_to_read || '';
       const autoReplay = settings.auto_replay;
       const speechScrollEnabled = settings.speech_scroll_enabled;
       const showEstimatedTotal = settings.show_estimated_total;
@@ -810,23 +811,23 @@ class TeleprompterApp extends TpaServer {
 
       if (!teleprompterManager) {
         teleprompterManager = new TeleprompterManager(
-          customText,
+          textToRead,
+          numberOfLines,
           lineWidth,
           scrollSpeed,
           autoReplay,
           speechScrollEnabled,
           showEstimatedTotal
         );
-        teleprompterManager.setNumberOfLines(numberOfLines);
         this.userTeleprompterManagers.set(userId, teleprompterManager);
         textChanged = true;
       } else {
         // Update existing manager
         const oldText = teleprompterManager.getText();
-        textChanged = oldText !== customText;
+        textChanged = oldText !== textToRead;
         
         if (textChanged) {
-          teleprompterManager.setText(customText);
+          teleprompterManager.setText(textToRead);
           teleprompterManager.resetPosition();
         }
         
