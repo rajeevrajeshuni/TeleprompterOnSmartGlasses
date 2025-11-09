@@ -784,7 +784,7 @@ export class TeleprompterApp extends AppServer {
     try {
       // Store the active session for this user
       this.activeUserSessions.set(userId, { session, sessionId });
-      
+
       // Load settings from SettingsManager
       const settings = this.settingsManager.getUserSettings(userId);
 
@@ -883,6 +883,16 @@ export class TeleprompterApp extends AppServer {
     } catch (e) {
         console.error('Error cleaning up session:', e);
     }
+  }
+
+  public startScrollingToUser(userId: string,textToRead: string) {
+      const activeSession = this.activeUserSessions.get(userId);
+      const teleprompterManager = this.userTeleprompterManagers.get(userId);
+      if (activeSession && teleprompterManager) {
+          teleprompterManager.setText(textToRead);
+          teleprompterManager.resetPosition();
+          this.startScrolling(activeSession.session, activeSession.sessionId, userId);
+      }
   }
 
   /**

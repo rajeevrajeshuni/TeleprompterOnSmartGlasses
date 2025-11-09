@@ -122,8 +122,8 @@ async function startTeleprompter(req: AuthRequest, res: Response) {
       return;
     }
     console.log('Received teleprompter start request with textToRead:', textToRead);
-
-    //TODO: Update teleprompter text here.
+    
+    app.startScrollingToUser(userId!, textToRead)
 
     res.json({
       success: true,
