@@ -6,7 +6,6 @@ import { Settings, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { createApiClient } from '../Api';
 import { useAuthenticatedApi } from '../hooks/useAuthenticatedApi';
-import type { TeleprompterSettings } from '../types/index';
 import * as mammoth from 'mammoth';
 
 const STORAGE_KEY = 'teleprompter_script';
@@ -43,17 +42,7 @@ export default function ScriptView() {
     setIsLoading(true);
 
     try {
-      navigate('/active');
-      // Fetch current settings from API
-      const userSettings = await api.getUserSettings();
-
-      // Merge script text with settings
-      const settings: TeleprompterSettings = {
-        ...userSettings,
-        customText: scriptText,
-      };
-
-      const response = await api.startTeleprompter(settings);
+      const response = await api.startTeleprompter(scriptText);
       
       if (response.success) {
         toast.success('Teleprompter started successfully!');

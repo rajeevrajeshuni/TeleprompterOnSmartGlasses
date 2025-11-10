@@ -70,11 +70,12 @@ export function createApiClient(getHeaders?: () => HeadersInit) {
     /**
      * Start the teleprompter with the given settings
      */
-    async startTeleprompter(settings: TeleprompterSettings): Promise<StartTeleprompterResponse> {
+    async startTeleprompter(scriptText: string): Promise<StartTeleprompterResponse> {
+      const bodyJson = {'textToRead':scriptText}
       const response = await fetch(`${API_BASE_URL}/api/start-teleprompter`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ settings }),
+        body: JSON.stringify(bodyJson),
       });
 
       if (!response.ok) {
