@@ -1,13 +1,13 @@
 // Type exports for teleprompter functionality
 
 export interface TeleprompterSettings {
-  line_width: string;
-  scroll_speed: number;
-  number_of_lines: string;
-  custom_text: string;
-  auto_replay: boolean;
-  speech_scroll_enabled: boolean;
-  show_estimated_total: boolean;
+  lineWidth: string;
+  scrollSpeed: number;
+  numberOfLines: string;
+  customText: string;
+  autoReplay: boolean;
+  speechScrollEnabled: boolean;
+  showEstimatedTotal: boolean;
 }
 
 export interface StartTeleprompterRequest {

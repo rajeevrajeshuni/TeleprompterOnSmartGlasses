@@ -22,29 +22,27 @@ export default function TeleprompterSettings() {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        // Get user email from localStorage (set by useAuth)
-        const userEmail = localStorage.getItem('user_email') || 'default_user';
-        const userSettings = await api.getUserSettings(userEmail);
+        const userSettings = await api.getUserSettings();
+        console.log('TeleprompterSettings: successfully loaded settings:', userSettings);
         setSettings(userSettings);
       } catch (error) {
-        console.error('Error fetching user settings:', error);
-        toast.error('Failed to load settings');
+        console.error('Failed to load settings: ',error);
         // Fallback to hardcoded defaults if API fails
         const fallbackSettings = {
-          line_width: 'Medium',
-          scroll_speed: 120,
-          number_of_lines: '4',
-          custom_text: '',
-          auto_replay: false,
-          speech_scroll_enabled: true,
-          show_estimated_total: true,
+          lineWidth: 'Medium',
+          scrollSpeed: 120,
+          numberOfLines: '4',
+          customText: '',
+          autoReplay: false,
+          speechScrollEnabled: true,
+          showEstimatedTotal: true,
         };
+        console.log('TeleprompterSettings: using fallback settings:', fallbackSettings);
         setSettings(fallbackSettings);
       } finally {
         setIsLoading(false);
       }
     };
-    
     loadSettings();
   }, []);
 
@@ -126,8 +124,8 @@ export default function TeleprompterSettings() {
               Line Width
             </Label>
             <Select
-              value={settings.line_width}
-              onValueChange={(value) => updateSetting('line_width', value)}
+              value={settings.lineWidth}
+              onValueChange={(value) => updateSetting('lineWidth', value)}
             >
               <SelectTrigger className="bg-slate-800/50 border-slate-700 text-white h-12">
                 <SelectValue />
@@ -150,8 +148,8 @@ export default function TeleprompterSettings() {
               type="number"
               min="1"
               max="500"
-              value={settings.scroll_speed}
-              onChange={(e) => updateSetting('scroll_speed', parseInt(e.target.value) || 120)}
+              value={settings.scrollSpeed}
+              onChange={(e) => updateSetting('scrollSpeed', parseInt(e.target.value) || 120)}
               className="bg-slate-800/50 border-slate-700 text-white h-12"
             />
             <p className="text-sm text-slate-400">
@@ -165,8 +163,8 @@ export default function TeleprompterSettings() {
               Number of Lines
             </Label>
             <Select
-              value={settings.number_of_lines}
-              onValueChange={(value) => updateSetting('number_of_lines', value)}
+              value={settings.numberOfLines}
+              onValueChange={(value) => updateSetting('numberOfLines', value)}
             >
               <SelectTrigger className="bg-slate-800/50 border-slate-700 text-white h-12">
                 <SelectValue />
@@ -197,8 +195,8 @@ export default function TeleprompterSettings() {
               </div>
               <Switch
                 id="auto_replay"
-                checked={settings.auto_replay}
-                onCheckedChange={(checked) => updateSetting('auto_replay', checked)}
+                checked={settings.autoReplay}
+                onCheckedChange={(checked) => updateSetting('autoReplay', checked)}
               />
             </div>
 
@@ -213,8 +211,8 @@ export default function TeleprompterSettings() {
               </div>
               <Switch
                 id="speech_scroll_enabled"
-                checked={settings.speech_scroll_enabled}
-                onCheckedChange={(checked) => updateSetting('speech_scroll_enabled', checked)}
+                checked={settings.speechScrollEnabled}
+                onCheckedChange={(checked) => updateSetting('speechScrollEnabled', checked)}
               />
             </div>
 
@@ -229,8 +227,8 @@ export default function TeleprompterSettings() {
               </div>
               <Switch
                 id="show_estimated_total"
-                checked={settings.show_estimated_total}
-                onCheckedChange={(checked) => updateSetting('show_estimated_total', checked)}
+                checked={settings.showEstimatedTotal}
+                onCheckedChange={(checked) => updateSetting('showEstimatedTotal', checked)}
               />
             </div>
           </div>

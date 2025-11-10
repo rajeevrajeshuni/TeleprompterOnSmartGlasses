@@ -45,13 +45,12 @@ export default function ScriptView() {
     try {
       navigate('/active');
       // Fetch current settings from API
-      const userEmail = localStorage.getItem('user_email') || 'default_user';
-      const userSettings = await api.getUserSettings(userEmail);
+      const userSettings = await api.getUserSettings();
 
       // Merge script text with settings
       const settings: TeleprompterSettings = {
         ...userSettings,
-        custom_text: scriptText,
+        customText: scriptText,
       };
 
       const response = await api.startTeleprompter(settings);

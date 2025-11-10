@@ -48,8 +48,10 @@ function setupRoutes() {
 async function getSettings(req: AuthRequest, res: Response) {
   try {
     const userId = req.userId;
-    
+    console.log('getSettings called with userId:', userId);
+
     if (!userId) {
+      console.error('getSettings: userId is missing from request');
       res.status(400).json({
         success: false,
         message: 'userId is required'
@@ -57,13 +59,21 @@ async function getSettings(req: AuthRequest, res: Response) {
       return;
     }
 
+    console.log('getSettings: calling settingsManager.getUserSettings for userId:', userId);
     const settings = app.settingsManager.getUserSettings(userId);
+    console.log('getSettings: retrieved settings:', settings);
+
     res.json({
       success: true,
       settings
     });
   } catch (error) {
     console.error('Error fetching user settings:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      userId: req.userId
+    });
     res.status(500).json({
       success: false,
       message: 'Internal server error'

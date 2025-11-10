@@ -18,10 +18,18 @@ export class SettingsManager {
    * Returns user's saved settings or default settings if none exist
    */
   getUserSettings(userId: string): TeleprompterSettings {
+    console.log('SettingsManager.getUserSettings called with userId:', userId);
+    console.log('SettingsManager: current userSettings map size:', this.userSettings.size);
+    console.log('SettingsManager: userSettings keys:', Array.from(this.userSettings.keys()));
+
     const settings = this.userSettings.get(userId);
     if (settings) {
+      console.log('SettingsManager: found existing settings for userId:', userId, settings);
       return { ...settings }; // Return a copy to prevent external modifications
     }
+
+    console.log('SettingsManager: no settings found for userId:', userId, '- returning defaults');
+    console.log('SettingsManager: DEFAULT_TELEPROMPTER_SETTINGS:', DEFAULT_TELEPROMPTER_SETTINGS);
     // Return a copy of default settings
     return { ...DEFAULT_TELEPROMPTER_SETTINGS };
   }
