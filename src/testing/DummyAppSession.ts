@@ -23,14 +23,7 @@ export class DummyAppSession {
      * @param options - Display options (view, durationMs)
      */
     showTextWall: (text: string, options?: { view?: ViewType; durationMs?: number }) => {
-      const timestamp = new Date().toISOString();
-      console.log('\n╔════════════════════════════════════════════════════════════════╗');
-      console.log('║              TELEPROMPTER OUTPUT (SIMULATED)                   ║');
-      console.log('╠════════════════════════════════════════════════════════════════╣');
-      console.log(`║ Time: ${timestamp}                              ║`);
-      console.log('╠════════════════════════════════════════════════════════════════╣');
-      console.log(text);
-      console.log('╚════════════════════════════════════════════════════════════════╝\n');
+        console.log(text);
     }
   };
 

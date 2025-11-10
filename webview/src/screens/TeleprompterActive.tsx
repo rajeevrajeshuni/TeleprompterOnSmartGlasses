@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
-import { StopCircle, RotateCcw } from 'lucide-react';
+import { StopCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { createApiClient } from '../Api';
 import { useAuthenticatedApi } from '../hooks/useAuthenticatedApi';
@@ -21,20 +21,6 @@ export default function TeleprompterActive() {
     } catch (error) {
       console.error('Error stopping teleprompter:', error);
       toast.error('Failed to stop teleprompter');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleReset = async () => {
-    setIsLoading(true);
-    try {
-      await api.resetTeleprompter();
-      toast.success('Teleprompter reset');
-      navigate('/');
-    } catch (error) {
-      console.error('Error resetting teleprompter:', error);
-      toast.error('Failed to reset teleprompter');
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +58,6 @@ export default function TeleprompterActive() {
           {/* Info Text */}
           <div className="pt-4 text-sm text-slate-400 space-y-2">
             <p>• Stop: Ends the current teleprompting session</p>
-            <p>• Reset: Restarts the script from the beginning</p>
           </div>
         </div>
       </main>
@@ -87,16 +72,6 @@ export default function TeleprompterActive() {
           >
             <StopCircle className="w-5 h-5 mr-2" />
             {isLoading ? 'Stopping...' : 'Stop'}
-          </Button>
-          
-          <Button
-            onClick={handleReset}
-            disabled={isLoading}
-            variant="outline"
-            className="flex-1 h-14 text-lg bg-slate-800/50 border-slate-600 text-white hover:bg-slate-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <RotateCcw className="w-5 h-5 mr-2" />
-            {isLoading ? 'Resetting...' : 'Reset'}
           </Button>
         </div>
       </footer>

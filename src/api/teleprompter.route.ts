@@ -34,11 +34,6 @@ function setupRoutes() {
   router.put('/api/settings', express.json(), authMiddleware, updateSettings);
   router.post('/api/start-teleprompter', express.json(), authMiddleware, startTeleprompter);
   router.post('/api/stop-teleprompter', authMiddleware, stopTeleprompter);
-  router.post('/api/reset-teleprompter', authMiddleware, resetTeleprompter);
-  if (IS_DEV_MODE) {
-    // Development-only test endpoint (no auth required)
-    router.post('/api/test/simulate-session', express.json(), simulateSession);
-  }
 }
 
 /**
@@ -197,100 +192,6 @@ async function stopTeleprompter(req: AuthRequest, res: Response) {
     res.status(500).json({
       success: false,
       message: 'Internal server error'
-    });
-  }
-}
-
-/**
- * Reset teleprompter (restart from beginning)
- * POST /api/reset-teleprompter
- */
-async function resetTeleprompter(req: AuthRequest, res: Response) {
-  try {
-    const userId = req.userId;
-    
-    if (!userId) {
-      res.status(400).json({
-        success: false,
-        message: 'userId is required'
-      });
-      return;
-    }
-
-    // Get the active session for this user
-    const activeSession = app.getActiveSessionForUser(userId);
-    
-    if (!activeSession) {
-      res.status(404).json({
-        success: false,
-        message: 'No active teleprompter session found'
-      });
-      return;
-    }
-
-    // Stop current scrolling
-    app.stopScrolling(activeSession.sessionId);
-    
-    // Restart scrolling from the beginning
-    app.startScrolling(activeSession.session, activeSession.sessionId, userId);
-    
-    res.json({
-      success: true,
-      message: 'Teleprompter reset successfully'
-    });
-
-  } catch (error) {
-    console.error('Error resetting teleprompter:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
-}
-
-/**
- * Simulate a glass session for testing (development only)
- * POST /api/test/simulate-session
- */
-async function simulateSession(req: express.Request, res: Response) {
-  try {
-    // Only allow in development mode
-    if (process.env.NODE_ENV !== 'development') {
-      res.status(403).json({
-        success: false,
-        message: 'This endpoint is only available in development mode'
-      });
-      return;
-    }
-
-    const { userId, sessionId } = req.body;
-    const testUserId = userId || 'test-user';
-    const testSessionId = sessionId || `manual-test-${Date.now()}`;
-
-    console.log(`\n🧪 Manual test session requested for user: ${testUserId}`);
-
-    // Create a dummy session
-    const dummySession = new DummyAppSession();
-
-    // Call onSession with the dummy session
-    await (app as any).onSession(
-      dummySession as any,
-      testSessionId,
-      testUserId
-    );
-
-    res.json({
-      success: true,
-      message: 'Dummy session created successfully',
-      userId: testUserId,
-      sessionId: testSessionId
-    });
-
-  } catch (error) {
-    console.error('Error creating dummy session:', error);
-    res.status(500).json({
-      success: false,
-      message: error instanceof Error ? error.message : 'Internal server error'
     });
   }
 }
