@@ -5,9 +5,8 @@ import { useCallback } from 'react';
  * Hook to get authenticated API configuration
  */
 export function useAuthenticatedApi() {
-  const { isAuthenticated, isLoading } = useMentraAuth();
-  const frontendToken = 'test-user:584728819e5b3582a5fd57f1fd78e5ddb39178bebd5dc0c8752d6e78e6345987'
-  
+  const { frontendToken, isAuthenticated, isLoading } = useMentraAuth();
+
   const getHeaders = useCallback(() => {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
