@@ -834,7 +834,7 @@ export class TeleprompterApp extends AppServer {
       const speechScrollEnabled = settings.speechScrollEnabled;
       const showEstimatedTotal = settings.showEstimatedTotal;
 
-      console.log(`Applied settings for user ${userId}: lineWidth=${lineWidth}, scrollSpeed=${scrollSpeed}, numberOfLines=${numberOfLines}, autoReplay=${autoReplay}, speechScrollEnabled=${speechScrollEnabled}, showEstimatedTotal=${showEstimatedTotal}`);
+      console.log(`Applied settings for user ${userId}: lineWidth=${lineWidth} (from "${settings.lineWidth}"), scrollSpeed=${scrollSpeed}, numberOfLines=${numberOfLines}, autoReplay=${autoReplay}, speechScrollEnabled=${speechScrollEnabled}, showEstimatedTotal=${showEstimatedTotal}`);
 
       // Get or create teleprompter manager
       let teleprompterManager = this.userTeleprompterManagers.get(userId);

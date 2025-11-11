@@ -45,7 +45,6 @@ export default function ScriptView() {
       const response = await api.startTeleprompter(scriptText);
       
       if (response.success) {
-        toast.success('Teleprompter started successfully!');
         // Navigate to the active teleprompter screen
         navigate('/active');
       } else {

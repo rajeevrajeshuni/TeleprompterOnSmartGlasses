@@ -16,7 +16,6 @@ export default function TeleprompterActive() {
     setIsLoading(true);
     try {
       await api.stopTeleprompter();
-      toast.success('Teleprompter stopped');
       navigate('/');
     } catch (error) {
       console.error('Error stopping teleprompter:', error);
