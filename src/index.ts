@@ -800,7 +800,7 @@ export class TeleprompterApp extends AppServer {
       console.log(`Applying settings for user ${userId}:`, settings);
 
       // Create/Update teleprompterManager.
-      this.configureTeleprompterForUser(sessionId, userId, settings);
+      this.configureTeleprompterForUser(userId, settings);
 
       const teleprompterManager = this.userTeleprompterManagers.get(userId);
       this.showTextToUser(session, sessionId, teleprompterManager!.getCurrentVisibleText());
@@ -822,8 +822,7 @@ export class TeleprompterApp extends AppServer {
   /**
    * Configure teleprompter for given user.
    */
-  private configureTeleprompterForUser(
-    sessionId: string,
+  public configureTeleprompterForUser(
     userId: string,
     settings: TeleprompterSettings
   ) {
@@ -860,7 +859,7 @@ export class TeleprompterApp extends AppServer {
       }
       console.log(`Settings applied for user ${userId}`);
     } catch (error) {
-      console.error(`Error applying settings to session ${sessionId}:`, error);
+      console.error(`Error applying settings to user ${userId}:`, error);
       throw error;
     }
   }

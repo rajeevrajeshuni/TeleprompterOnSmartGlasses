@@ -40,7 +40,6 @@ export class SettingsManager {
   saveUserSettings(userId: string, settings: TeleprompterSettings): void {
     // Validate settings before saving
     this.validateSettings(settings);
-    // Store a copy to prevent external modifications
     this.userSettings.set(userId, { ...settings });
   }
 

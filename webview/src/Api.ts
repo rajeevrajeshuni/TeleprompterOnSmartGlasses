@@ -55,7 +55,7 @@ export function createApiClient(getHeaders?: () => HeadersInit) {
      * @param userId - The user ID to save settings for
      * @param settings - The settings to save
      */
-    async saveUserSettings(userId: string, settings: TeleprompterSettings): Promise<void> {
+    async saveUserSettings(settings: TeleprompterSettings): Promise<void> {
       const response = await fetch(`${API_BASE_URL}/api/settings`, {
         method: 'PUT',
         headers: getAuthHeaders(),

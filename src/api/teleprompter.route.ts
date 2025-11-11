@@ -1,11 +1,9 @@
 import express, { Response } from 'express';
 import { TeleprompterApp } from '../index';
 import { AuthRequest, createAuthMiddleware } from './auth';
-import { DummyAppSession } from '../testing/DummyAppSession';
 
 export const router = express.Router();
 const NODE_ENV = process.env.NODE_ENV || 'production';
-const IS_DEV_MODE = NODE_ENV === 'development';
 
 let app: TeleprompterApp;
 let authMiddleware: ReturnType<typeof createAuthMiddleware> | undefined;
@@ -103,7 +101,7 @@ async function updateSettings(req: AuthRequest, res: Response) {
 
     // Save the settings using the settings manager
     app.settingsManager.saveUserSettings(userId, settings);
-    
+    app.configureTeleprompterForUser(userId,settings);
     res.json({
       success: true,
       message: 'Settings saved successfully',

@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
-import { StopCircle } from 'lucide-react';
+import { StopCircle, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import { createApiClient } from '../Api';
 import { useAuthenticatedApi } from '../hooks/useAuthenticatedApi';
@@ -24,6 +24,10 @@ export default function TeleprompterActive() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSettingsClick = () => {
+    navigate('/settings');
   };
 
   return (
@@ -72,6 +76,14 @@ export default function TeleprompterActive() {
           >
             <StopCircle className="w-5 h-5 mr-2" />
             {isLoading ? 'Stopping...' : 'Stop'}
+          </Button>
+                    <Button
+            onClick={handleSettingsClick}
+            variant="outline"
+            className="h-14 px-6 bg-slate-800/50 border-slate-600 text-white hover:bg-slate-700 hover:text-white"
+          >
+            <Settings className="w-5 h-5 mr-2" />
+            Settings
           </Button>
         </div>
       </footer>

@@ -47,7 +47,7 @@ export default function TeleprompterSettings() {
   }, []);
 
   const handleCancel = () => {
-    navigate('/');
+    navigate(-1);
   };
 
   const handleSave = async () => {
@@ -55,11 +55,9 @@ export default function TeleprompterSettings() {
     
     setIsSaving(true);
     try {
-      // Get user email from localStorage (set by useAuth)
-      const userEmail = localStorage.getItem('user_email') || 'default_user';
-      await api.saveUserSettings(userEmail, settings);
+      await api.saveUserSettings(settings);
       toast.success('Settings saved');
-      navigate('/');
+      navigate(-1);
     } catch (error) {
       console.error('Error saving settings:', error);
       toast.error('Failed to save settings');
