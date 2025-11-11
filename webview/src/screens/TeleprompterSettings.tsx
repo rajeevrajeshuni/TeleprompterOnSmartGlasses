@@ -52,6 +52,12 @@ export default function TeleprompterSettings() {
 
   const handleSave = async () => {
     if (!settings) return;
+
+    // Validate scroll speed
+    if (settings.scrollSpeed < 1 || settings.scrollSpeed > 500) {
+      toast.error('Scroll speed must be between 1 and 500');
+      return;
+    }
     
     setIsSaving(true);
     try {
@@ -146,12 +152,17 @@ export default function TeleprompterSettings() {
               type="number"
               min="1"
               max="500"
-              value={settings.scrollSpeed}
-              onChange={(e) => updateSetting('scrollSpeed', parseInt(e.target.value) || 120)}
+              value={settings.scrollSpeed === 0 ? '' : settings.scrollSpeed}
+              onChange={(e) => {
+                const value = e.target.value === '' ? 0 : parseInt(e.target.value);
+                if (!isNaN(value)) {
+                  updateSetting('scrollSpeed', value);
+                }
+              }}
               className="bg-slate-800/50 border-slate-700 text-white h-12"
             />
             <p className="text-sm text-slate-400">
-              Recommended: 120-180 WPM for comfortable reading
+              Accepts values between: 1-500 WPM
             </p>
           </div>
 
